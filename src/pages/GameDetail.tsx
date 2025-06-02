@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   Box,
@@ -7,6 +7,11 @@ import {
   Rating,
   Divider,
   Button,
+  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
 } from '@mui/material';
 import { mockGames } from '../mock/games';
 import { mockReviews } from '../mock/reviews';
@@ -16,10 +21,28 @@ const GameDetail: React.FC = () => {
   const { id } = useParams();
   const game = mockGames.find((g) => g.id === Number(id));
   const gameReviews = mockReviews.filter((r) => r.gameId === Number(id));
+  const [openReviewDialog, setOpenReviewDialog] = useState(false);
+  const [reviewText, setReviewText] = useState('');
+  const [rating, setRating] = useState<number | null>(3);
 
   if (!game) {
     return <div>Игра не найдена</div>;
   }
+
+  const handleReviewClick = () => {
+    setOpenReviewDialog(true);
+  };
+
+  const handleClose = () => {
+    setOpenReviewDialog(false);
+  };
+
+  const handleSubmit = () => {
+    console.log('Review submitted:', { text: reviewText, rating });
+    setOpenReviewDialog(false);
+    setReviewText('');
+    setRating(3);
+  };
 
   return (
     <Container maxWidth='lg'>
@@ -51,7 +74,11 @@ const GameDetail: React.FC = () => {
             <Typography variant='subtitle1' paragraph>
               Дата выхода: {new Date(game.releaseDate).toLocaleDateString()}
             </Typography>
-            <Button variant='contained' color='primary'>
+            <Button
+              variant='contained'
+              color='primary'
+              onClick={handleReviewClick}
+            >
               Оставить отзыв
             </Button>
           </Box>
@@ -70,6 +97,42 @@ const GameDetail: React.FC = () => {
           <Typography>Пока нет отзывов</Typography>
         )}
       </Box>
+
+      <Dialog open={openReviewDialog} onClose={handleClose}>
+        <DialogTitle>Оставить отзыв</DialogTitle>
+        <DialogContent>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
+              minWidth: '400px',
+              pt: 2,
+            }}
+          >
+            <Rating
+              value={rating}
+              onChange={(_, newValue) => setRating(newValue)}
+              precision={0.5}
+            />
+            <TextField
+              label='Ваш отзыв'
+              multiline
+              rows={4}
+              value={reviewText}
+              onChange={(e) => setReviewText(e.target.value)}
+              fullWidth
+              variant='outlined'
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Отмена</Button>
+          <Button onClick={handleSubmit} variant='contained' color='primary'>
+            Отправить
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
